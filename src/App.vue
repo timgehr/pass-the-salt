@@ -140,6 +140,10 @@ export default {
 </script>
 
 <style>
+*{
+  -webkit-tap-highlight-color: transparent;
+}
+
 #app {
   font-family: "Source Code Pro", monospace;
   /* font-family: "Syne Mono", monospace; */
