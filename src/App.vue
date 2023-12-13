@@ -136,11 +136,11 @@ export default {
       }
     },
   },
-}
+};
 </script>
 
 <style>
-*{
+* {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -151,7 +151,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: white;
-    background: rgb(37, 40, 40);
+  background: rgb(37, 40, 40);
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -185,7 +185,7 @@ export default {
   text-align: center;
 }
 
-.rem-3{
+.rem-3 {
   font-size: 3rem;
 }
 
@@ -380,8 +380,10 @@ input:checked + .slider:before {
   outline: none;
   font-family: "Source Code Pro", monospace;
   cursor: pointer;
-  transition: all 0.4s ease-in-out;
+  transition: all 0.2s ease-out;
   user-select: none;
+  margin-top: 0px;
+  margin-bottom: 0px;
   box-shadow: 0px 4px 8px 2px rgba(10, 19, 19, 0.247);
 }
 
@@ -391,7 +393,7 @@ input:checked + .slider:before {
 }
 
 .copy-text:focus {
-  animation: gradient 1s ease-out;
+  animation: gradient 1s ease-out, press 0.5s ease-out;
 }
 
 .copy-text.inactive:focus {
@@ -400,6 +402,10 @@ input:checked + .slider:before {
 
 .copy-text:active {
   animation: none;
+  box-shadow: 0px 2px 5px 0px rgba(10, 19, 19, 0.6);
+  margin-top: 3px;
+  margin-bottom: -3px;
+  transition: none;
 }
 
 .bottom {
@@ -446,9 +452,6 @@ input:checked + .slider:before {
   100% {
     background-position: 0% 50%;
   }
-  /* 100% {
-		background-position: 0% 50%;
-	} */
 }
 
 #top-logo {
