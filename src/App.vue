@@ -1,9 +1,10 @@
 <template>
   <div id="app">
-    <div class="align-center">
+    <div class="flex column align-center">
       <div class="top-bar flex center-center gap-10 rem-3">
         <img src="./assets/spilledsalt.png" id="top-logo" />
       </div>
+      <div class="flex column gap-10">
       <div class="flex column gap-10">
         <input
           type="text"
@@ -14,7 +15,7 @@
           placeholder="Site"
         />
       </div>
-      <div class="flex column gap-10 top-30">
+      <div class="flex column gap-10 top-10">
         <input
           :type="!show ? 'password' : 'text'"
           placeholder="Password"
@@ -24,16 +25,32 @@
           autocapitalize="none"
           style="-webkit-text-security: asterisk"
         />
-        <div class="flex row gap-10 space-around show-password">
-          <h4 class="">Show password</h4>
-          <label class="switch">
-            <input type="checkbox" v-model="show" class="checkbox" />
-            <span class="slider"></span>
-          </label>
+      </div>
+        <div class="flex center-center relative">
+          <div class="flex row gap-10 space-around show-password">
+            <h4 class="">Show password</h4>
+            <label class="switch">
+              <input type="checkbox" v-model="show" class="checkbox" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <span
+            class="material-symbols-outlined settings-button"
+            :class="settingsOpen ? 'settings-button-open' : ''"
+            v-on:click="settingsOpen = !settingsOpen"
+          >
+            settings
+          </span>
+        </div>
+        <div class="settings" :class="settingsOpen ? 'settings-open' : ''">
+          <SettingsMenu
+            :allowedChars="allowedChars"
+            :site="input.site"
+          ></SettingsMenu>
         </div>
       </div>
       <div class="bottom">
-        <p class="console-text err">{{ this.errmess }}</p>
+        <p class="err">{{ this.errmess }}</p>
         <button
           class="copy-text"
           :class="this.res ? 'active' : 'inactive'"
@@ -44,7 +61,7 @@
           }}
         </button>
         <p
-          class="console-text success"
+          class="success"
           :class="{ 'slide-up': copySuccess }"
           @animationend="copySuccess = false"
         >
@@ -57,14 +74,21 @@
 
 <script>
 import CryptoJS from "crypto-js";
+import "./styles.css";
+import SettingsMenu from "./components/SettingsMenu.vue";
 
 export default {
   name: "App",
+  components: {
+    SettingsMenu,
+  },
   data() {
     return {
       input: {
         key: "",
         site: "",
+        username: "",
+        retrySalt: "",
       },
       res: "",
       errmess: "",
@@ -72,7 +96,24 @@ export default {
       copySuccess: false,
       line0: "",
       show: false,
+      settingsOpen: false,
     };
+  },
+  computed: {
+    allowedChars() {
+      return this.$store.state.savedAllowedChars.length > 0
+        ? this.$store.state.savedAllowedChars
+        : this.$store.state.allowedChars;
+    },
+    disallowedChars() {
+      return ["!",'"',"#","$","%","&","'","(",")","*","+",",","-",".","/",":",";","<","=",">","?","@","[","\\","]","^","_","`"].filter(c => !this.allowedChars.includes(c));
+    },
+    min() {
+      return this.$store.state.minLength;
+    },
+    max() {
+      return this.$store.state.maxLength;
+    },
   },
   watch: {
     input: {
@@ -81,12 +122,21 @@ export default {
         this.produceEncryption();
       },
     },
+    max() {
+      this.produceEncryption();
+    },
+    min() {
+      this.produceEncryption();
+    },
+    allowedChars() {
+      this.produceEncryption();
+    },
   },
   methods: {
     produceEncryption() {
       this.res = "";
       var k = this.input.key;
-      var s = this.input.site;
+      var s = this.input.site + this.input.username + this.input.retrySalt;
       if (k !== "" && s !== "") {
         var full = CryptoJS.HmacSHA256(s, k);
         this.res = this.hex_to_ascii(full);
@@ -102,24 +152,21 @@ export default {
         var strTemp = String.fromCharCode(
           (parseInt(hex.substr(n, 2), 16) % 89) + 33
         );
-        if (
-          strTemp === "/" ||
-          strTemp === "\\" ||
-          strTemp === "`" ||
-          strTemp === "," ||
-          strTemp === "." ||
-          strTemp === ":" ||
-          strTemp === "[" ||
-          strTemp === "]" ||
-          strTemp === ";" ||
-          strTemp === "{" ||
-          strTemp === "}"
-        ) {
+        if (this.disallowedChars.includes(strTemp)) {
           strTemp = "";
         }
         str += strTemp;
       }
-      return str;
+      str = str.slice(0, this.max);
+      if (/\p{Lu}/u.test(str) && /\p{Ll}/u.test(str) && /\p{N}/u.test(str)) {
+        return str.slice(0, this.max);
+      } else if (str.length >= 4) {
+        this.input.retrySalt = str;
+        this.produceEncryption();
+        return "****";
+      } else {
+        return "****";
+      }
     },
     copyPassword() {
       if (!navigator.clipboard) {
@@ -140,10 +187,6 @@ export default {
 </script>
 
 <style>
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
 #app {
   font-family: "Source Code Pro", monospace;
   /* font-family: "Syne Mono", monospace; */
@@ -159,105 +202,6 @@ export default {
   font-size: 20px;
   display: flex;
   justify-content: center;
-}
-
-.yellow {
-  color: rgb(217, 181, 64);
-}
-
-.console {
-  width: 800px;
-  max-width: 100%;
-  height: 600px;
-  margin: 50px;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 14px 4px rgba(0, 0, 0, 0.2);
-
-  color: rgb(255, 255, 255);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  overflow: hidden;
-  text-align: center;
-}
-
-.rem-3 {
-  font-size: 3rem;
-}
-
-.input {
-  font-family: "Source Code Pro", monospace;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: rgb(27, 29, 29, 0.6);
-  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-
-  border: none;
-  outline: none;
-  border-radius: 8px;
-  font-size: 34px;
-  color: rgb(116, 150, 150);
-  caret-color: rgb(116, 150, 150, 0.5);
-  width: 400px;
-  max-width: 85vw;
-}
-
-::placeholder {
-  color: rgb(116, 150, 150, 0.2);
-  opacity: 1; /* Firefox */
-}
-
-.center-center {
-  justify-content: center;
-  align-items: center;
-}
-.align-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.flex {
-  display: flex;
-}
-
-.space-around {
-  justify-content: center;
-}
-
-.column {
-  flex-direction: column;
-}
-
-.gap-10 {
-  gap: 10px;
-}
-
-.top-30 {
-  margin-top: 20px;
-}
-
-/* .console-text::before {
-  color: rgb(217, 181, 64);
-  content: "PS > ";
-} */
-
-.result {
-  margin: 0px auto;
-  text-align: center;
-}
-
-.type {
-  animation: typing 3.5s steps(40, end);
-}
-
-.blink {
-  animation: blink-caret 0.75s step-end infinite;
 }
 
 /* SHOW PASSWORD */
@@ -308,8 +252,33 @@ export default {
   border-radius: 50%;
 }
 
+/* Text Field */
+
+.input {
+  font-family: "Source Code Pro", monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: rgb(27, 29, 29, 0.6);
+  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  font-size: 34px;
+  color: rgb(116, 150, 150);
+  caret-color: rgb(116, 150, 150, 0.5);
+  width: 400px;
+  max-width: 85vw;
+}
+
+::placeholder {
+  color: rgb(116, 150, 150, 0.2);
+  opacity: 1; /* Firefox */
+}
+
 input:checked + .slider:before {
-  background-color: #6ad7d7;
+  background-color: #58f4f4;
   box-shadow: 0 0 3px #45c1c144;
 }
 
@@ -342,6 +311,7 @@ input:checked + .slider:before {
   color: rgb(170, 170, 170);
 }
 
+/* Details */
 .err {
   color: rgb(207, 0, 0);
 }
@@ -358,6 +328,8 @@ input:checked + .slider:before {
   font-size: 30px;
   color: rgb(0, 19, 19);
 }
+
+/* Copy Text Button */
 
 .copy-text {
   background: linear-gradient(
@@ -388,7 +360,18 @@ input:checked + .slider:before {
 }
 
 .copy-text.inactive {
-  background: rgba(44, 63, 63, 0.662);
+  background: linear-gradient(
+    90deg,
+    rgb(7, 64, 64, 0) 0%,
+    rgb(7, 64, 64, 0) 25%,
+    rgb(22, 84, 84, 0) 50%,
+    rgb(7, 64, 64, 0) 75%,
+    rgb(7, 64, 64, 0) 100%
+  );
+  box-shadow: 0px 4px 8px 2px rgba(10, 19, 19, 0);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0);
+  transition: 1s;
   display: none;
 }
 
@@ -405,8 +388,10 @@ input:checked + .slider:before {
   box-shadow: 0px 2px 5px 0px rgba(10, 19, 19, 0.6);
   margin-top: 3px;
   margin-bottom: -3px;
-  transition: none;
+  /* transition: none; */
 }
+
+/* Successfully Copied */
 
 .bottom {
   margin-top: 40px;
@@ -428,13 +413,11 @@ input:checked + .slider:before {
   -webkit-text-fill-color: transparent;
 }
 
-/* .copy-text:active ~ .success{
-  animation: slide-up 1s ease-out;
-} */
-
 .success.slide-up {
   animation: slide-up 2s ease-out;
 }
+
+/* Animation */
 
 @keyframes slide-up {
   0% {
@@ -454,9 +437,50 @@ input:checked + .slider:before {
   }
 }
 
+/* Logo */
+
 #top-logo {
   height: 50px;
   margin: 30px 0px;
+}
+
+/* Settings */
+
+.settings-button {
+  color: rgb(116, 150, 150);
+  position: absolute;
+  right: 0px;
+  transition: transform 1s ease, color 1s ease;
+}
+
+.settings-button-open {
+  color: #58f4f4;
+  text-shadow: 0 0 3px #45c1c144;
+  transform: rotateZ(120deg);
+  transition: transform 0.5s ease, color 0.5s ease;
+}
+
+.settings {
+  /* display: none; */
+  background-color: rgb(27, 29, 29, 0.6);
+  border-radius: 10px;
+  padding: 0px;
+  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0);
+  height: 0px;
+  transition: height 0.5s ease-in, padding 0.15s ease-out 0.5s;
+  max-height: 600px;
+  overflow: hidden;
+  opacity: 1;
+}
+.settings-open {
+  padding: 10px;
+  background-color: rgb(27, 29, 29, 0.6);
+  transition: height 0.5s ease;
+  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
+  opacity: 1;
+  display: block;
+  height: 550px;
+  margin-bottom: 0px;
 }
 </style>
 
