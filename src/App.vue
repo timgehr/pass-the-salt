@@ -322,7 +322,7 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: rgba(27, 29, 29, 0.6);
-  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
   padding: 10px;
 
   border: none;

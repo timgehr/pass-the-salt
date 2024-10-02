@@ -61,7 +61,7 @@
         :class="site.length > 0 ? 'show' : ''"
         v-on:click="saveSettings()"
       >
-        Save these settings for &nbsp;<span class="italic">{{ site }}</span>
+      <span class="left-and-center">Save these settings for&nbsp;</span><span class="italic">{{ site }}</span>
       </div>
       <div
         v-if="localStorageOn()"
@@ -271,11 +271,10 @@ input[type="number"] {
   background-color: #00000033;
   color: #749696;
   border-radius: 4px;
-  text-align: center;
   cursor: pointer;
   user-select: none;
   font-size: 1rem;
-  max-width: 360px;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -285,11 +284,17 @@ input[type="number"] {
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
   padding: 0px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding-left: 10px;
   padding-right: 10px;
   transition: max-height 0.3s ease, margin 0.1s ease-out, outline 0.5s ease, padding-top 0.3s ease, padding-bottom 0.3s ease;
+}
+.left-and-center {
+  margin-left: auto;
+}
+.these-settings .italic {
+  margin-right: auto;
 }
 .these-settings.show {
   max-height: 40px;
