@@ -35,7 +35,6 @@
         :value="allowedChars.join('')"
         @input="allowedChars = $event.target.value.split('')"
       /> -->
-      Special Characters:
       <div class="special-characters">
         <div
           class="character"
@@ -54,20 +53,25 @@
         </div>
       </div>
     </div>
-    <div class="flex width-100 gap-10">
+    <div
+      class="flex width-100 gap-10 button-bar"
+      :class="site.length > 0 ? '' : 'hide'"
+    >
       <div
         v-if="localStorageOn()"
         class="these-settings save grow-2"
         :class="site.length > 0 ? 'show' : ''"
         v-on:click="saveSettings()"
       >
-      <span class="left-and-center">Save these settings for&nbsp;</span><span class="italic">{{ site }}</span>
+        <span class="left-and-center"></span
+        ><span class="italic">{{ site }}</span>
       </div>
       <div
         v-if="localStorageOn()"
         class="these-settings delete shrink-1"
         :class="site.length > 0 ? 'show' : ''"
-        v-on:click="clearSettings()">
+        v-on:click="clearSettings()"
+      >
         <span class="material-symbols-outlined">delete</span>
       </div>
     </div>
@@ -175,12 +179,14 @@ export default {
     },
     saveSettings() {
       localStorage.removeItem(this.site);
-      localStorage.setItem(this.site, JSON.stringify(
-        {"allowedChars": this.allowedChars,
-        "min": this.min,
-        "max": this.max
-        }
-      ));
+      localStorage.setItem(
+        this.site,
+        JSON.stringify({
+          allowedChars: this.allowedChars,
+          min: this.min,
+          max: this.max,
+        })
+      );
     },
     clearSettings() {
       localStorage.removeItem(this.site);
@@ -189,7 +195,10 @@ export default {
     setSettings() {
       if (this.localStorageOn() && localStorage.getItem(this.site)) {
         let localStorageSettings = JSON.parse(localStorage.getItem(this.site));
-        store.commit("updateSavedAllowedChars", localStorageSettings.allowedChars);
+        store.commit(
+          "updateSavedAllowedChars",
+          localStorageSettings.allowedChars
+        );
         store.commit("updateMinLength", localStorageSettings.min);
         store.commit("updateMaxLength", localStorageSettings.max);
       } else if (knownSites[this.site]) {
@@ -204,7 +213,7 @@ export default {
         store.commit("updateMinLength", 8);
         store.commit("updateMaxLength", 64);
       }
-    }
+    },
   },
   watch: {
     site() {
@@ -218,7 +227,7 @@ export default {
 .settings-menu {
   padding: 10px;
   color: rgb(116, 150, 150);
-  height: 530px;
+  height: 510px;
 }
 .setting {
   display: flex;
@@ -288,7 +297,11 @@ input[type="number"] {
   align-items: center;
   padding-left: 10px;
   padding-right: 10px;
-  transition: max-height 0.3s ease, margin 0.1s ease-out, outline 0.5s ease, padding-top 0.3s ease, padding-bottom 0.3s ease;
+  transition: max-height 0.3s ease, margin 0.1s ease-out, outline 0.5s ease,
+    padding-top 0.3s ease, padding-bottom 0.3s ease, background-color 0.1s ease;
+}
+.save.these-settings .left-and-center:before {
+  content: "Save these settings for\00a0";
 }
 .left-and-center {
   margin-left: auto;
@@ -312,6 +325,7 @@ input[type="number"] {
   outline: 1px solid #6ad7d755;
 }
 .delete.these-settings {
+  min-width: 24px;
   outline: 1px solid #f4939300;
   background-color: #ff000011;
   color: #f49393;
@@ -320,9 +334,22 @@ input[type="number"] {
   outline: 1px solid #f4939322;
 }
 .delete.these-settings:hover {
-  outline: 1px solid #ff8686;
+  outline: 1px solid #ff868688;
   background-color: #ff000033;
   color: #ff8686;
+}
+.delete.these-settings:active {
+  background-color: #ff000055;
+}
+.save.these-settings:active {
+  background-color: #6ad7d722;
+}
+
+.button-bar.hide {
+  margin-top: -20px;
+}
+.button-bar {
+  transition: 0.3s;
 }
 
 @keyframes save-success {
@@ -344,5 +371,15 @@ input[type="number"] {
 .reset-all {
   grid-column-start: 3;
   grid-column-end: 5;
+}
+
+@media (max-width: 400px) {
+  .save.these-settings .left-and-center:before {
+    content: "Save Settings";
+  }
+  .save.these-settings .italic {
+    width: 0px;
+    overflow: hidden;
+  }
 }
 </style>

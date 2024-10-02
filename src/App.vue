@@ -1,92 +1,87 @@
 <template>
-  <div id="app">
-    <div class="flex column align-center">
-      <div class="top-bar flex center-center gap-10 rem-3">
-        <img src="./assets/spilledsalt.png" id="top-logo" />
+  <div class="flex column align-center page-container">
+    <div class="top-bar flex center-center gap-10 rem-3 width-100">
+      <img src="./assets/spilledsalt.png" id="top-logo" />
+    </div>
+    <div class="flex column gap-10 width-100">
+      <div class="flex column">
+        <input
+          type="text"
+          class="input site"
+          v-on:keyup.enter="produceEncryption"
+          v-model="input.site"
+          autocapitalize="none"
+          placeholder="Site"
+        />
       </div>
-      <div class="flex column gap-10">
-        <div class="flex column">
-          <input
-            type="text"
-            class="input site"
-            v-on:keyup.enter="produceEncryption"
-            v-model="input.site"
-            autocapitalize="none"
-            placeholder="Site"
-          />
-        </div>
-        <div class="flex column">
-          <input
-            type="text"
-            class="input username"
-            v-on:keyup.enter="produceEncryption"
-            v-model="input.username"
-            autocapitalize="none"
-            placeholder="Account"
-            :class="useAccount ? 'active' : 'inactive'"
-          />
-        </div>
-        <div class="flex column">
-          <input
-            :type="!show ? 'password' : 'text'"
-            placeholder="Password"
-            class="input password"
-            id="password"
-            v-on:keyup.enter="produceEncryption"
-            v-model="input.key"
-            autocapitalize="none"
-            style="-webkit-text-security: asterisk"
-          />
-        </div>
-        <div class="flex center-center relative">
-          <span
-            class="material-symbols-outlined account-button blue-button"
-            :class="useAccount ? 'account-on blue-button-on' : ''"
-            v-on:click="useAccount = !useAccount"
-          >
-            person_add
-          </span>
-          <div class="flex row gap-10 space-around show-password">
-            <h4 class="">Show password</h4>
-            <label class="switch">
-              <input type="checkbox" v-model="show" class="checkbox" />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <span
-            class="material-symbols-outlined settings-button blue-button"
-            :class="settingsOpen ? 'settings-button-open blue-button-on' : ''"
-            v-on:click="settingsOpen = !settingsOpen"
-          >
-            settings
-          </span>
-        </div>
-        <div class="settings" :class="settingsOpen ? 'settings-open' : ''">
-          <SettingsMenu
-            :allowedChars="allowedChars"
-            :site="input.site"
-          ></SettingsMenu>
-        </div>
+      <div class="flex column width-100">
+        <input
+          type="text"
+          class="input username"
+          v-on:keyup.enter="produceEncryption"
+          v-model="input.username"
+          autocapitalize="none"
+          placeholder="Account"
+          :class="useAccount ? 'active' : 'inactive'"
+        />
       </div>
-      <div class="bottom">
-        <p class="err">{{ this.errmess }}</p>
-        <button
-          class="copy-text"
-          :class="this.res ? 'active' : 'inactive'"
-          v-on:click="copyPassword"
+      <div class="flex column width-100">
+        <input
+          :type="!show ? 'password' : 'text'"
+          placeholder="Password"
+          class="input password"
+          id="password"
+          v-on:keyup.enter="produceEncryption"
+          v-model="input.key"
+          autocapitalize="none"
+          style="-webkit-text-security: asterisk"
+        />
+      </div>
+      <div class="flex center-center relative width-100">
+        <span
+          class="material-symbols-outlined account-button blue-button"
+          :class="useAccount ? 'account-on blue-button-on' : ''"
+          v-on:click="useAccount = !useAccount"
         >
-          {{
-            this.cliptext + this.res.slice(0, 4) + (this.res ? "******" : "")
-          }}
-        </button>
-        <p
-          class="success"
-          :class="{ 'slide-up': copySuccess }"
-          @animationend="copySuccess = false"
+          person_add
+        </span>
+        <div class="flex row gap-10 space-around show-password">
+          <h4 class="">Show password</h4>
+          <label class="switch">
+            <input type="checkbox" v-model="show" class="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <span
+          class="material-symbols-outlined settings-button blue-button"
+          :class="settingsOpen ? 'settings-button-open blue-button-on' : ''"
+          v-on:click="settingsOpen = !settingsOpen"
         >
-          Succesfully copied!
-        </p>
+          settings
+        </span>
       </div>
+      <div class="settings" :class="settingsOpen ? 'settings-open' : ''">
+        <SettingsMenu
+          :allowedChars="allowedChars"
+          :site="input.site"
+        ></SettingsMenu>
+      </div>
+    </div>
+    <div class="bottom">
+      <button
+        class="copy-text"
+        :class="this.res ? 'active' : 'inactive'"
+        v-on:click="copyPassword"
+      >
+        {{ this.cliptext + this.res.slice(0, 4) + (this.res ? "******" : "") }}
+      </button>
+      <p
+        class="success"
+        :class="{ 'slide-up': copySuccess }"
+        @animationend="copySuccess = false"
+      >
+        Succesfully copied!
+      </p>
     </div>
   </div>
 </template>
@@ -203,7 +198,6 @@ export default {
           this.retrySalt += "retry";
           this.produceEncryption();
         }
-        this.errmess = "";
       }
     },
     hex_to_ascii(str1) {
@@ -256,15 +250,21 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: white;
   background: rgb(37, 40, 40);
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  height: fit-content;
+  width: 100%;
   overflow: hidden;
   box-sizing: border-box;
   font-size: 20px;
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
+  padding: 0px 20px;
+}
+
+.page-container {
+  max-width: min(400px, 100%);
 }
 
 /* SHOW PASSWORD */
@@ -331,8 +331,6 @@ export default {
   font-size: 34px;
   color: rgb(116, 150, 150);
   caret-color: rgb(116, 150, 150, 0.5);
-  width: 400px;
-  max-width: 85vw;
 }
 
 .input.inactive {
@@ -400,7 +398,7 @@ input:checked + .slider:before {
 
 #topbar {
   height: fit-content;
-  min-width: 100vw;
+  min-width: 100%;
   margin-bottom: 40px;
   padding: 30px 10px;
   font-size: 30px;
@@ -408,7 +406,6 @@ input:checked + .slider:before {
 }
 
 /* Copy Text Button */
-
 .copy-text {
   background: linear-gradient(
     90deg,
@@ -472,10 +469,11 @@ input:checked + .slider:before {
 /* Successfully Copied */
 
 .bottom {
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .success {
+  margin-bottom: 0px;
   animation: none;
   user-select: none;
   background: linear-gradient(
@@ -568,7 +566,7 @@ input:checked + .slider:before {
   box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
   opacity: 1;
   display: block;
-  height: 550px;
+  height: 530px;
   margin-bottom: 0px;
 }
 </style>
