@@ -42,32 +42,44 @@
           v-on:click="updateAllowedChars(char)"
           v-for="char in allChars"
           :key="char"
-          :class="allowedChars.includes(char) ? 'allowed' : ''"
+          :class="allowedChars?.includes(char) ? 'allowed' : ''"
         >
           {{ char }}
         </div>
-        <div class="character disable-all">None</div>
+        <div class="character disable-all" v-on:click="clearAllowedChars()">
+          Clear All
+        </div>
+        <div class="character reset-all" v-on:click="resetAllowedChars()">
+          Reset
+        </div>
       </div>
     </div>
-    <div
-      v-if="localStorageOn()"
-      class="save-these-settings width-100"
-      :class="site.length > 0 ? 'show' : ''"
-      v-on:click="saveSettings()"
-    >
-      Save these settings for <span class="italic">{{ site }}</span>
+    <div class="flex width-100 gap-10">
+      <div
+        v-if="localStorageOn()"
+        class="these-settings save grow-2"
+        :class="site.length > 0 ? 'show' : ''"
+        v-on:click="saveSettings()"
+      >
+        Save these settings for &nbsp;<span class="italic">{{ site }}</span>
+      </div>
+      <div
+        v-if="localStorageOn()"
+        class="these-settings delete shrink-1"
+        :class="site.length > 0 ? 'show' : ''"
+        v-on:click="clearSettings()">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import store from "@/store";
+import knownSites from "@/assets/knownSettings.json";
 
 export default {
   props: ["site"],
-  mounted() {
-    console.log(this.$store.allowedChars);
-  },
   data() {
     return {
       allChars: [
@@ -104,7 +116,7 @@ export default {
   },
   computed: {
     allowedChars() {
-      return this.$store.state.savedAllowedChars.length > 0
+      return this.$store.state.savedAllowedChars?.length > 0
         ? this.$store.state.savedAllowedChars
         : this.$store.state.allowedChars;
     },
@@ -127,15 +139,24 @@ export default {
   },
   methods: {
     updateAllowedChars(char) {
-      let commitType = this.$store.state.savedAllowedChars.length > 0 ? "updateSavedAllowedChars" : "updateAllowedChars"
+      let commitType =
+        this.$store.state.savedAllowedChars?.length > 0
+          ? "updateSavedAllowedChars"
+          : "updateAllowedChars";
       let allowedChars = [...this.allowedChars];
-      if (allowedChars.includes(char)) {
-        allowedChars.splice(allowedChars.indexOf(char), 1);
+      if (allowedChars?.includes(char)) {
+        allowedChars?.splice(allowedChars.indexOf(char), 1);
         store.commit(commitType, allowedChars);
       } else {
         allowedChars.push(char);
         store.commit(commitType, allowedChars);
       }
+    },
+    resetAllowedChars() {
+      store.commit("updateAllowedChars", this.$store.state.allChars);
+    },
+    clearAllowedChars() {
+      store.commit("updateAllowedChars", []);
     },
     updateMax(max) {
       store.commit("updateMaxLength", max);
@@ -154,18 +175,40 @@ export default {
     },
     saveSettings() {
       localStorage.removeItem(this.site);
-      localStorage.setItem(this.site, JSON.stringify(this.allowedChars));
+      localStorage.setItem(this.site, JSON.stringify(
+        {"allowedChars": this.allowedChars,
+        "min": this.min,
+        "max": this.max
+        }
+      ));
     },
+    clearSettings() {
+      localStorage.removeItem(this.site);
+      this.setSettings();
+    },
+    setSettings() {
+      if (this.localStorageOn() && localStorage.getItem(this.site)) {
+        let localStorageSettings = JSON.parse(localStorage.getItem(this.site));
+        store.commit("updateSavedAllowedChars", localStorageSettings.allowedChars);
+        store.commit("updateMinLength", localStorageSettings.min);
+        store.commit("updateMaxLength", localStorageSettings.max);
+      } else if (knownSites[this.site]) {
+        store.commit(
+          "updateSavedAllowedChars",
+          knownSites[this.site].allowedChars
+        );
+        store.commit("updateMinLength", knownSites[this.site].min);
+        store.commit("updateMaxLength", knownSites[this.site].max);
+      } else {
+        store.commit("updateSavedAllowedChars", []);
+        store.commit("updateMinLength", 8);
+        store.commit("updateMaxLength", 64);
+      }
+    }
   },
   watch: {
     site() {
-      if (this.localStorageOn() && localStorage.getItem(this.site)) {
-        let localStorageChars = JSON.parse(localStorage.getItem(this.site));
-        console.log(localStorageChars);
-        store.commit("updateSavedAllowedChars", localStorageChars);
-      } else {
-        store.commit("updateSavedAllowedChars", []);
-      }
+      this.setSettings();
     },
   },
 };
@@ -223,7 +266,8 @@ input[type="number"] {
   color: rgba(0, 0, 0, 0.8);
   box-shadow: 0 0 5px #6ad7d741;
 }
-.save-these-settings {
+
+.these-settings {
   background-color: #00000033;
   color: #749696;
   border-radius: 4px;
@@ -240,36 +284,60 @@ input[type="number"] {
   outline: 1px solid #74969600;
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
   padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition: max-height 0.3s ease, margin 0.1s ease-out, outline 0.5s ease, padding-top 0.3s ease, padding-bottom 0.3s ease;
 }
-
-.save-these-settings.show {
+.these-settings.show {
   max-height: 40px;
   outline: 1px solid #74969622;
   box-shadow: 0 3px 6px -3px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease, margin 0.1s ease-out, outline 1.2s ease;
   padding: 10px;
 }
-
-.save-these-settings.show:active {
+.these-settings.show:active {
   margin-bottom: -2px;
   margin-top: 2px;
-  animation: save-success 2s ease;
+}
+.save.these-settings:hover {
+  background-color: #6ad7d711;
+  color: #6ad7d7;
+  outline: 1px solid #6ad7d755;
+}
+.delete.these-settings {
+  outline: 1px solid #f4939300;
+  background-color: #ff000011;
+  color: #f49393;
+}
+.delete.these-settings.show {
+  outline: 1px solid #f4939322;
+}
+.delete.these-settings:hover {
+  outline: 1px solid #ff8686;
+  background-color: #ff000033;
+  color: #ff8686;
 }
 
 @keyframes save-success {
-   0% {
+  0% {
     outline: 1px solid #74969622;
-    }
-    60% {
-      outline: 1px solid #48bdbd66;
-    }
-    100% {
-      outline: 1px solid #74969622;
-    }  
+  }
+  60% {
+    outline: 1px solid #48bdbd66;
+  }
+  100% {
+    outline: 1px solid #74969622;
+  }
 }
 
 .disable-all {
-  grid-column-start: 2;
-  grid-column-end: 4;
+  grid-column-start: 1;
+  grid-column-end: 3;
+}
+.reset-all {
+  grid-column-start: 3;
+  grid-column-end: 5;
 }
 </style>

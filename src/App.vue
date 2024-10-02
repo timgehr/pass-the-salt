@@ -5,28 +5,47 @@
         <img src="./assets/spilledsalt.png" id="top-logo" />
       </div>
       <div class="flex column gap-10">
-      <div class="flex column gap-10">
-        <input
-          type="text"
-          class="input site"
-          v-on:keyup.enter="produceEncryption"
-          v-model="input.site"
-          autocapitalize="none"
-          placeholder="Site"
-        />
-      </div>
-      <div class="flex column gap-10 top-10">
-        <input
-          :type="!show ? 'password' : 'text'"
-          placeholder="Password"
-          class="input password"
-          v-on:keyup.enter="produceEncryption"
-          v-model="input.key"
-          autocapitalize="none"
-          style="-webkit-text-security: asterisk"
-        />
-      </div>
+        <div class="flex column">
+          <input
+            type="text"
+            class="input site"
+            v-on:keyup.enter="produceEncryption"
+            v-model="input.site"
+            autocapitalize="none"
+            placeholder="Site"
+          />
+        </div>
+        <div class="flex column">
+          <input
+            type="text"
+            class="input username"
+            v-on:keyup.enter="produceEncryption"
+            v-model="input.username"
+            autocapitalize="none"
+            placeholder="Account"
+            :class="useAccount ? 'active' : 'inactive'"
+          />
+        </div>
+        <div class="flex column">
+          <input
+            :type="!show ? 'password' : 'text'"
+            placeholder="Password"
+            class="input password"
+            id="password"
+            v-on:keyup.enter="produceEncryption"
+            v-model="input.key"
+            autocapitalize="none"
+            style="-webkit-text-security: asterisk"
+          />
+        </div>
         <div class="flex center-center relative">
+          <span
+            class="material-symbols-outlined account-button blue-button"
+            :class="useAccount ? 'account-on blue-button-on' : ''"
+            v-on:click="useAccount = !useAccount"
+          >
+            person_add
+          </span>
           <div class="flex row gap-10 space-around show-password">
             <h4 class="">Show password</h4>
             <label class="switch">
@@ -35,8 +54,8 @@
             </label>
           </div>
           <span
-            class="material-symbols-outlined settings-button"
-            :class="settingsOpen ? 'settings-button-open' : ''"
+            class="material-symbols-outlined settings-button blue-button"
+            :class="settingsOpen ? 'settings-button-open blue-button-on' : ''"
             v-on:click="settingsOpen = !settingsOpen"
           >
             settings
@@ -88,8 +107,9 @@ export default {
         key: "",
         site: "",
         username: "",
-        retrySalt: "",
       },
+      useAccount: false,
+      retrySalt: "",
       res: "",
       errmess: "",
       cliptext: "Copy ",
@@ -101,12 +121,41 @@ export default {
   },
   computed: {
     allowedChars() {
-      return this.$store.state.savedAllowedChars.length > 0
+      return this.$store.state.savedAllowedChars?.length > 0
         ? this.$store.state.savedAllowedChars
         : this.$store.state.allowedChars;
     },
     disallowedChars() {
-      return ["!",'"',"#","$","%","&","'","(",")","*","+",",","-",".","/",":",";","<","=",">","?","@","[","\\","]","^","_","`"].filter(c => !this.allowedChars.includes(c));
+      return [
+        "!",
+        '"',
+        "#",
+        "$",
+        "%",
+        "&",
+        "'",
+        "(",
+        ")",
+        "*",
+        "+",
+        ",",
+        "-",
+        ".",
+        "/",
+        ":",
+        ";",
+        "<",
+        "=",
+        ">",
+        "?",
+        "@",
+        "[",
+        "\\",
+        "]",
+        "^",
+        "_",
+        "`",
+      ].filter((c) => !this.allowedChars?.includes(c));
     },
     min() {
       return this.$store.state.minLength;
@@ -114,6 +163,9 @@ export default {
     max() {
       return this.$store.state.maxLength;
     },
+    // capsLockState(){
+    //   return this.getCapsLockState();
+    // }
   },
   watch: {
     input: {
@@ -123,10 +175,10 @@ export default {
       },
     },
     max() {
-      this.produceEncryption();
+      if (this.min < this.max) this.produceEncryption();
     },
     min() {
-      this.produceEncryption();
+      if (this.min < this.max) this.produceEncryption();
     },
     allowedChars() {
       this.produceEncryption();
@@ -135,20 +187,29 @@ export default {
   methods: {
     produceEncryption() {
       this.res = "";
-      var k = this.input.key;
-      var s = this.input.site + this.input.username + this.input.retrySalt;
+      let k = this.input.key;
+      let s = this.input.site + this.input.username + this.retrySalt;
       if (k !== "" && s !== "") {
-        var full = CryptoJS.HmacSHA256(s, k);
-        this.res = this.hex_to_ascii(full);
+        let full = CryptoJS.HmacSHA256(s, k);
+        let ascii = this.hex_to_ascii(full);
+        if (
+          /\p{Lu}/u.test(ascii) &&
+          /\p{Ll}/u.test(ascii) &&
+          /\p{N}/u.test(ascii)
+        ) {
+          this.res = ascii;
+          this.retrySalt = "";
+        } else {
+          this.retrySalt += "retry";
+          this.produceEncryption();
+        }
         this.errmess = "";
-      } else {
-        // this.errmess = "Please enter site or password";
       }
     },
     hex_to_ascii(str1) {
-      var hex = str1.toString();
-      var str = "";
-      for (var n = 0; n < hex.length; n += 2) {
+      let hex = str1.toString();
+      let str = "";
+      for (let n = 0; n < hex.length; n += 2) {
         var strTemp = String.fromCharCode(
           (parseInt(hex.substr(n, 2), 16) % 89) + 33
         );
@@ -158,15 +219,7 @@ export default {
         str += strTemp;
       }
       str = str.slice(0, this.max);
-      if (/\p{Lu}/u.test(str) && /\p{Ll}/u.test(str) && /\p{N}/u.test(str)) {
-        return str.slice(0, this.max);
-      } else if (str.length >= 4) {
-        this.input.retrySalt = str;
-        this.produceEncryption();
-        return "****";
-      } else {
-        return "****";
-      }
+      return str.slice(0, this.max);
     },
     copyPassword() {
       if (!navigator.clipboard) {
@@ -182,6 +235,16 @@ export default {
         this.cliptext = "Failed to copy ";
       }
     },
+    // getCapsLockState() {
+    //   let input = document.getElementById("password");
+    //   input?.addEventListener("keydown", function(event) {
+    //     if (event.getModifierState("CapsLock")) {
+    //       return "Caps Lock on";
+    //     } else {
+    //       return "HE"
+    //     }
+    //   });
+    // },
   },
 };
 </script>
@@ -258,8 +321,8 @@ export default {
   font-family: "Source Code Pro", monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: rgb(27, 29, 29, 0.6);
-  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
+  background: rgba(27, 29, 29, 0.6);
+  box-shadow: inset 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
   padding: 10px;
 
   border: none;
@@ -270,6 +333,21 @@ export default {
   caret-color: rgb(116, 150, 150, 0.5);
   width: 400px;
   max-width: 85vw;
+}
+
+.input.inactive {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: 0px;
+  transition: height 0.4s ease, padding 0.4s ease, margin-bottom 0.6s ease,
+    margin-top 0.6s ease;
+}
+.input.active {
+  height: 40px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  transition: height 0.6s ease, padding 0.6s ease, margin-bottom 0.6s ease,
+    margin-top 0.6s ease;
 }
 
 ::placeholder {
@@ -446,16 +524,27 @@ input:checked + .slider:before {
 
 /* Settings */
 
-.settings-button {
+.blue-button {
   color: rgb(116, 150, 150);
+  position: absolute;
+}
+
+.blue-button-on {
+  color: #58f4f4;
+  text-shadow: 0 0 3px #45c1c144;
+}
+
+.account-button {
+  left: 0px;
+}
+
+.settings-button {
   position: absolute;
   right: 0px;
   transition: transform 1s ease, color 1s ease;
 }
 
 .settings-button-open {
-  color: #58f4f4;
-  text-shadow: 0 0 3px #45c1c144;
   transform: rotateZ(120deg);
   transition: transform 0.5s ease, color 0.5s ease;
 }
