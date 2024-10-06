@@ -1,7 +1,12 @@
+.width-100 {
+  width: 100%;
+}
+
 .center-center {
   justify-content: center;
   align-items: center;
 }
+
 .align-center {
   display: flex;
   flex-direction: column;
@@ -31,6 +36,7 @@
 .italic {
   font-style: italic;
 }
+
 .column {
   flex-direction: column;
 }
@@ -42,9 +48,11 @@
 .top-10 {
   margin-top: 10px;
 }
+
 .top--10 {
   margin-top: -10px;
 }
+
 .tran {
   transition: all 0.4s;
 }
@@ -65,9 +73,9 @@
   position: relative;
 }
 
-.material-symbols-outlined{
-    cursor: pointer;
-    user-select: none;
+.material-symbols-outlined {
+  cursor: pointer;
+  user-select: none;
 }
 
 .rem-3 {
@@ -80,4 +88,8 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  color-scheme: dark;
 }
