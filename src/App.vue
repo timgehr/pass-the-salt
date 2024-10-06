@@ -13,6 +13,7 @@
             v-model="input.site"
             autocapitalize="none"
             placeholder="Site"
+            tabindex="1"
           />
         </div>
         <div class="flex column">
@@ -24,6 +25,7 @@
             autocapitalize="none"
             placeholder="Account"
             :class="useAccount ? 'active' : 'inactive'"
+            :tabindex="useAccount ? 2 : -1"
           />
         </div>
         <div class="flex column">
@@ -36,6 +38,7 @@
             v-model="input.key"
             autocapitalize="none"
             style="-webkit-text-security: asterisk"
+            tabindex="3"
           />
         </div>
         <div class="flex center-center relative">
