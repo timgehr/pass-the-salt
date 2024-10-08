@@ -36,6 +36,13 @@
 .italic {
   font-style: italic;
 }
+.bold {
+  font-weight: bold;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
 
 .column {
   flex-direction: column;

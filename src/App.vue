@@ -88,6 +88,28 @@
         Succesfully copied!
       </p>
     </div>
+    <div class="info">
+      <span
+        class="material-symbols-outlined blue-button info"
+        :class="showInfo ? 'blue-button-on' : ''"
+        v-on:click="showInfo = !showInfo"
+        >info</span
+      >
+    </div>
+    <div class="links" v-if="showInfo">
+      <h3>How it works:</h3>
+      <p>
+        Enter the name of the site (and a username if you have multiple
+        accounts) and your master password. A different strong password will be
+        generated for each site based on these inputs, but are <span class="italic bold">never</span> stored;
+        rather, it's generated on the fly every time you enter your credentials.
+      </p>
+      <br/>
+      <div class="github" v-on:click="() => goToGitHub()">
+        Check it out on GitHub
+        <img src="./assets/bluegithub.png" alt="github" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -117,6 +139,7 @@ export default {
       line0: "",
       show: false,
       settingsOpen: false,
+      showInfo: false,
     };
   },
   computed: {
@@ -234,6 +257,9 @@ export default {
         this.cliptext = "Failed to copy ";
       }
     },
+    goToGitHub() {
+      window.open("https://github.com/timgehr/pass-the-salt", "_blank");
+    },
     // getCapsLockState() {
     //   let input = document.getElementById("password");
     //   input?.addEventListener("keydown", function(event) {
@@ -280,7 +306,7 @@ export default {
   margin: 0px;
   font-size: 15px;
   font-weight: 400;
-  color: rgb(116, 150, 150);
+  color: #749696;
 }
 .switch {
   position: relative;
@@ -573,6 +599,68 @@ input:checked + .slider:before {
   display: block;
   height: 530px;
   margin-bottom: 0px;
+}
+
+/* Links */
+.links {
+  color: rgb(116, 150, 150);
+  position: absolute;
+  bottom: 20px;
+  background: rgba(27, 29, 29, 1);
+  border-radius: 8px 8px 8px 0px;
+  left: 20px;
+  width: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  padding: 20px;
+  gap: 10px;
+  max-width: 500px;
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
+}
+
+.links h3 {
+  margin: 0px;
+  font-size: 1.5rem;
+}
+
+.links p {
+  margin: 0px;
+  text-align: left;
+}
+
+.info {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  z-index: 100;
+}
+
+.github {
+  cursor: pointer;
+  user-select: none;
+  background: rgb(37, 40, 40);
+  border-radius: 8px;
+  padding: 10px 10px;
+  height: 30px;
+  width: fit-content;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgb(116, 150, 150);
+  font-size: 1rem;
+  max-width: 400px;
+  gap: 20px;
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+.github img {
+  height: 30px;
+  width: 30px;
+  object-fit: contain;
+  /* filter: drop-shadow(0px 0px 5px rgb(116, 150, 150, 0.1)); */
 }
 </style>
 
